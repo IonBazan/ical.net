@@ -6,6 +6,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using Ical.Net.Utility;
 
 namespace Ical.Net.DataTypes;
 
@@ -73,10 +74,20 @@ public class UtcOffset : EncodableDataType
 
     public override int GetHashCode() => Offset.GetHashCode();
 
-    public override string ToString() => (Positive ? "+" : "-")
-        + Hours.ToString("00", CultureInfo.InvariantCulture)
-        + Minutes.ToString("00", CultureInfo.InvariantCulture)
-        + (Seconds != 0 ? Seconds.ToString("00", CultureInfo.InvariantCulture) : string.Empty);
+    public override string ToString()
+    {
+        Span<char> buffer = stackalloc char[7];
+        buffer[0] = Positive ? '+' : '-';
+        TextUtil.WriteDigits(buffer, 1, Hours, 2);
+        TextUtil.WriteDigits(buffer, 3, Minutes, 2);
+        if (Seconds == 0)
+        {
+            return buffer.Slice(0, 5).ToString();
+        }
+
+        TextUtil.WriteDigits(buffer, 5, Seconds, 2);
+        return buffer.ToString();
+    }
 
     private static readonly string[] _utcOffsetFormats = ["hhmmss", "hhmm", "hh"];
 

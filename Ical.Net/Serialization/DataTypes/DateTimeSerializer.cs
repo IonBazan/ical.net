@@ -46,16 +46,16 @@ public class DateTimeSerializer : SerializerBase, IParameterProvider
         // properties whose time values are specified in UTC.
 
         Span<char> buffer = stackalloc char[16];
-        WriteDigits(buffer, 0, dt.Year, 4);
-        WriteDigits(buffer, 4, dt.Month, 2);
-        WriteDigits(buffer, 6, dt.Day, 2);
+        TextUtil.WriteDigits(buffer, 0, dt.Year, 4);
+        TextUtil.WriteDigits(buffer, 4, dt.Month, 2);
+        TextUtil.WriteDigits(buffer, 6, dt.Day, 2);
         var length = 8;
         if (dt.Time is { } time)
         {
             buffer[8] = 'T';
-            WriteDigits(buffer, 9, time.Hour, 2);
-            WriteDigits(buffer, 11, time.Minute, 2);
-            WriteDigits(buffer, 13, time.Second, 2);
+            TextUtil.WriteDigits(buffer, 9, time.Hour, 2);
+            TextUtil.WriteDigits(buffer, 11, time.Minute, 2);
+            TextUtil.WriteDigits(buffer, 13, time.Second, 2);
             length = 15;
             if (dt.IsUtc)
             {
@@ -65,15 +65,6 @@ public class DateTimeSerializer : SerializerBase, IParameterProvider
         }
 
         return buffer.Slice(0, length).ToString();
-    }
-
-    private static void WriteDigits(Span<char> buffer, int offset, int value, int digits)
-    {
-        for (var i = offset + digits - 1; i >= offset; i--)
-        {
-            buffer[i] = (char) ('0' + value % 10);
-            value /= 10;
-        }
     }
 
     private const RegexOptions Options = RegexOptions.Compiled | RegexOptions.IgnoreCase;

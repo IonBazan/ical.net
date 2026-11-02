@@ -63,6 +63,52 @@ internal static class TextUtil
         result.Append(SerializationConstants.LineBreak);
     }
 
+    /// <summary>
+    /// Folds the line that was appended to <paramref name="result"/> starting at <paramref name="start"/>.
+    /// </summary>
+    public static void FoldLines(this StringBuilder result, int start)
+    {
+        if (IsShortAsciiLine(result, start))
+        {
+            result.Append(SerializationConstants.LineBreak);
+            return;
+        }
+
+        var line = result.ToString(start, result.Length - start);
+        result.Length = start;
+        result.FoldLines(line);
+    }
+
+    private static bool IsShortAsciiLine(StringBuilder sb, int start)
+    {
+        if (sb.Length - start > LineLength)
+        {
+            return false;
+        }
+
+        for (var i = start; i < sb.Length; i++)
+        {
+            if (sb[i] > 0x7F)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Writes <paramref name="value"/> as a zero-padded number of <paramref name="digits"/> digits at <paramref name="offset"/>.
+    /// </summary>
+    public static void WriteDigits(Span<char> buffer, int offset, int value, int digits)
+    {
+        for (var i = offset + digits - 1; i >= offset; i--)
+        {
+            buffer[i] = (char) ('0' + value % 10);
+            value /= 10;
+        }
+    }
+
     public static IEnumerable<string> Chunk(string str, int chunkSize = 73)
     {
         for (var index = 0; index < str.Length; index += chunkSize)

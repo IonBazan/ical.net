@@ -93,31 +93,31 @@ public class PropertySerializer : SerializerBase
             ?? (valueSerializer as IParameterProvider)?.GetParameters(value).ToList()
             ?? (IList<CalendarParameter>)prop.Parameters;
 
-        var sb = new StringBuilder();
-        sb.Append(prop.Name);
+        var start = result.Length;
+        result.Append(prop.Name);
         if (parameterList.Count != 0)
         {
             // Get a serializer for parameters
             var parameterSerializer = sf.Build(typeof(CalendarParameter), SerializationContext) as IStringSerializer;
             if (parameterSerializer != null)
             {
-                sb.Append(';');
+                result.Append(';');
                 var first = true;
                 // Serialize each parameter and append to the StringBuilder
                 foreach (var param in parameterList)
                 {
-                    if (!first) sb.Append(';');
+                    if (!first) result.Append(';');
 
-                    sb.Append(parameterSerializer.SerializeToString(param));
+                    result.Append(parameterSerializer.SerializeToString(param));
                     first = false;
                 }
             }
         }
 
-        sb.Append(':');
-        sb.Append(serializedValue);
+        result.Append(':');
+        result.Append(serializedValue);
 
-        result.FoldLines(sb.ToString());
+        result.FoldLines(start);
     }
 
     public override object? Deserialize(TextReader tr) => null;

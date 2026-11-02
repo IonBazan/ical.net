@@ -6,9 +6,9 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using Ical.Net.DataTypes;
+using Ical.Net.Utility;
 
 namespace Ical.Net.Serialization.DataTypes;
 
@@ -28,32 +28,44 @@ public class DurationSerializer : SerializerBase
         if (ts.IsEmpty)
             return "P0D";
 
-        var sb = new StringBuilder();
+        // Sign, 'P', 'T' and five parts of at most 10 digits plus a designator
+        Span<char> buffer = stackalloc char[58];
+        var length = 0;
 
         var sign = ts.Sign;
         if (sign < 0)
-            sb.Append('-');
+            buffer[length++] = '-';
 
-        sb.Append('P');
-        // NOSONAR: netstandard2.x does not support string.Create(CultureInfo.InvariantCulture, $"{...}");
-        if (ts.Weeks != null)
-            sb.Append(FormattableString.Invariant($"{sign * ts.Weeks}W")); // NOSONAR 
-        if (ts.Days != null)
-            sb.Append(FormattableString.Invariant($"{sign * ts.Days}D")); // NOSONAR
+        buffer[length++] = 'P';
+        if (ts.Weeks is { } weeks)
+            WritePart(buffer, ref length, sign * weeks, 'W');
+        if (ts.Days is { } days)
+            WritePart(buffer, ref length, sign * days, 'D');
 
         if (ts.Hours != null || ts.Minutes != null || ts.Seconds != null)
         {
-            sb.Append('T');
+            buffer[length++] = 'T';
 
-            if (ts.Hours != null)
-                sb.Append(FormattableString.Invariant($"{sign * ts.Hours}H")); // NOSONAR
-            if (ts.Minutes != null)
-                sb.Append(FormattableString.Invariant($"{sign * ts.Minutes}M")); // NOSONAR
-            if (ts.Seconds != null)
-                sb.Append(FormattableString.Invariant($"{sign * ts.Seconds}S")); // NOSONAR
+            if (ts.Hours is { } hours)
+                WritePart(buffer, ref length, sign * hours, 'H');
+            if (ts.Minutes is { } minutes)
+                WritePart(buffer, ref length, sign * minutes, 'M');
+            if (ts.Seconds is { } seconds)
+                WritePart(buffer, ref length, sign * seconds, 'S');
         }
 
-        return sb.ToString();
+        return buffer.Slice(0, length).ToString();
+    }
+
+    private static void WritePart(Span<char> buffer, ref int length, int value, char designator)
+    {
+        var digits = 1;
+        for (var rest = value / 10; rest != 0; rest /= 10)
+            digits++;
+
+        TextUtil.WriteDigits(buffer, length, value, digits);
+        length += digits;
+        buffer[length++] = designator;
     }
 
     internal static readonly Regex DurationMatch =
