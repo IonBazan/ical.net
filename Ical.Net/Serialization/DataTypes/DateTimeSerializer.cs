@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using Ical.Net.DataTypes;
 using Ical.Net.Utility;
@@ -46,20 +45,35 @@ public class DateTimeSerializer : SerializerBase, IParameterProvider
         // the time value. The "TZID" property parameter MUST NOT be applied to DATE-TIME
         // properties whose time values are specified in UTC.
 
-        var value = new StringBuilder(512);
-        // NOSONAR: netstandard2.x does not support string.Create(CultureInfo.InvariantCulture, $"{...}");
-        value.Append(FormattableString.Invariant($"{dt.Year:0000}{dt.Month:00}{dt.Day:00}")); // NOSONAR
+        Span<char> buffer = stackalloc char[16];
+        WriteDigits(buffer, 0, dt.Year, 4);
+        WriteDigits(buffer, 4, dt.Month, 2);
+        WriteDigits(buffer, 6, dt.Day, 2);
+        var length = 8;
         if (dt.Time is { } time)
         {
-            value.Append(FormattableString.Invariant($"T{time.Hour:00}{time.Minute:00}{time.Second:00}")); // NOSONAR
+            buffer[8] = 'T';
+            WriteDigits(buffer, 9, time.Hour, 2);
+            WriteDigits(buffer, 11, time.Minute, 2);
+            WriteDigits(buffer, 13, time.Second, 2);
+            length = 15;
             if (dt.IsUtc)
             {
-                value.Append('Z');
+                buffer[15] = 'Z';
+                length = 16;
             }
         }
 
-        // Encode the value as necessary
-        return value.ToString();
+        return buffer.Slice(0, length).ToString();
+    }
+
+    private static void WriteDigits(Span<char> buffer, int offset, int value, int digits)
+    {
+        for (var i = offset + digits - 1; i >= offset; i--)
+        {
+            buffer[i] = (char) ('0' + value % 10);
+            value /= 10;
+        }
     }
 
     private const RegexOptions Options = RegexOptions.Compiled | RegexOptions.IgnoreCase;
