@@ -95,7 +95,9 @@ public class Todo : RecurringComponent, IAlarmContainer
         set => Properties.Set(TodoStatus.Key, value);
     }
 
-    public Todo()
+    public Todo() : this(setDefaults: true) { }
+
+    internal Todo(bool setDefaults) : base(setDefaults)
     {
         Name = TodoStatus.Name;
 

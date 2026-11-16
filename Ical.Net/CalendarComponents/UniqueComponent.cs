@@ -22,9 +22,14 @@ public class UniqueComponent : CalendarComponent, IUniqueComponent, IComparable<
     // parameter ("PARENT", "CHILD", "SIBLING", or other)
     // TODO: Add RemoveRelationship() public method.
 
-    public UniqueComponent()
+    public UniqueComponent() : this(setDefaults: true) { }
+
+    private protected UniqueComponent(bool setDefaults)
     {
-        EnsureProperties();
+        if (setDefaults)
+        {
+            EnsureProperties();
+        }
     }
 
     public UniqueComponent(string name) : base(name)

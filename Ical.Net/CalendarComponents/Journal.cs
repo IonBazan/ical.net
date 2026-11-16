@@ -25,7 +25,9 @@ public class Journal : RecurringComponent
     /// Constructs an Journal object, with an iCalObject
     /// (usually an iCalendar object) as its parent.
     /// </summary>
-    public Journal()
+    public Journal() : this(setDefaults: true) { }
+
+    internal Journal(bool setDefaults) : base(setDefaults)
     {
         Name = JournalStatus.Name;
     }

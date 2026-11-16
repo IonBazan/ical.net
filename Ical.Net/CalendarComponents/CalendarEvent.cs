@@ -161,7 +161,9 @@ public class CalendarEvent : RecurringComponent, IAlarmContainer
     /// Constructs an Event object, with an iCalObject
     /// (usually an iCalendar object) as its parent.
     /// </summary>
-    public CalendarEvent()
+    public CalendarEvent() : this(setDefaults: true) { }
+
+    internal CalendarEvent(bool setDefaults) : base(setDefaults)
     {
         this.Evaluator = new EventEvaluator(this);
         Initialize();

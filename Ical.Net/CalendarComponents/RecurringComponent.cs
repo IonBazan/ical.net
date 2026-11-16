@@ -157,10 +157,16 @@ public abstract class RecurringComponent : UniqueComponent, IRecurringComponent
 
     public abstract IEvaluator? Evaluator { get; }
 
-    protected RecurringComponent()
+    protected RecurringComponent() : this(setDefaults: true) { }
+
+    private protected RecurringComponent(bool setDefaults) : base(setDefaults)
     {
         Initialize();
-        EnsureProperties();
+
+        if (setDefaults)
+        {
+            EnsureProperties();
+        }
     }
 
     protected RecurringComponent(string name) : base(name)

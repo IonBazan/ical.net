@@ -4,6 +4,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -522,5 +523,51 @@ public class SerializationTests2
         var abc = CalendarSerializer.Deserialize<CalendarComponent>(ics);
 
         Assert.That(abc.Properties.Get<string>("SUMMARY"), Is.EqualTo("This is a custom component"));
+    }
+
+    [Test]
+    public void DeserializeDoesNotAddDefaultProperties()
+    {
+        var calendar = CalendarSerializer.Deserialize<Calendar>("""
+            BEGIN:VCALENDAR
+            BEGIN:VEVENT
+            SUMMARY:Event
+            END:VEVENT
+            BEGIN:VTODO
+            SUMMARY:Todo
+            END:VTODO
+            BEGIN:VJOURNAL
+            SUMMARY:Journal
+            END:VJOURNAL
+            BEGIN:VFREEBUSY
+            END:VFREEBUSY
+            END:VCALENDAR
+            """.ReplaceLineEndings("\r\n"));
+
+        IEnumerable<CalendarComponent> components =
+            [calendar, calendar.Events.Single(), calendar.Todos.Single(), calendar.Journals.Single(), calendar.FreeBusy.Single()];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(calendar.Properties.Select(x => x.Name), Is.Empty);
+
+            foreach (var component in components.Skip(1))
+            {
+                Assert.That(component.Properties.Select(x => x.Name), Is.SubsetOf(new[] { "SUMMARY" }), component.Name);
+            }
+        }
+    }
+
+    [Test]
+    public void ConstructorsAddDefaultProperties()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(new Calendar().Properties.Select(x => x.Name), Is.SupersetOf(new[] { "PRODID", "VERSION" }));
+            Assert.That(new CalendarEvent().Properties.Select(x => x.Name), Is.SupersetOf(new[] { "UID", "DTSTAMP", "SEQUENCE" }));
+            Assert.That(new Todo().Properties.Select(x => x.Name), Is.SupersetOf(new[] { "UID", "DTSTAMP", "SEQUENCE" }));
+            Assert.That(new Journal().Properties.Select(x => x.Name), Is.SupersetOf(new[] { "UID", "DTSTAMP", "SEQUENCE" }));
+            Assert.That(new FreeBusy().Properties.Select(x => x.Name), Is.SupersetOf(new[] { "UID", "DTSTAMP" }));
+        }
     }
 }

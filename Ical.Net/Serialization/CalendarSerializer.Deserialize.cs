@@ -277,9 +277,6 @@ public partial class CalendarSerializer
             throw new SerializationException($"Unexpected component type \"{componentName}\" at line {reader.LineNumber}");
         }
 
-        // Remove all default properties
-        component.Properties.Clear();
-
         components.Push(component);
         return ContentLineResult.Continue;
     }

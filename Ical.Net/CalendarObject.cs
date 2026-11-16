@@ -5,6 +5,7 @@
 
 using System;
 using System.Runtime.Serialization;
+using System.Threading;
 using Ical.Net.Collections;
 using NodaTime;
 
@@ -15,13 +16,11 @@ namespace Ical.Net;
 /// </summary>
 public class CalendarObject : CalendarObjectBase, ICalendarObject
 {
-    // Are initialized in the constructor
-    private ICalendarObjectList<ICalendarObject> _children = null!;
+    private ICalendarObjectList<ICalendarObject>? _children;
 
     internal CalendarObject()
     {
         Name = string.Empty;
-        Initialize();
     }
 
     public CalendarObject(string name) : this()
@@ -35,19 +34,13 @@ public class CalendarObject : CalendarObjectBase, ICalendarObject
         Column = col;
     }
 
-    private void Initialize()
-    {
-        _children = new CalendarObjectList();
-        _children.ItemAdded += Children_ItemAdded;
-    }
-
     [OnDeserializing]
     internal void DeserializingInternal(StreamingContext context) => OnDeserializing(context);
 
     [OnDeserialized]
     internal void DeserializedInternal(StreamingContext context) => OnDeserialized(context);
 
-    protected virtual void OnDeserializing(StreamingContext context) => Initialize();
+    protected virtual void OnDeserializing(StreamingContext context) => _children = null;
 
     protected virtual void OnDeserialized(StreamingContext context) { }
 
@@ -95,7 +88,15 @@ public class CalendarObject : CalendarObjectBase, ICalendarObject
     /// <summary>
     /// A collection of iCalObjects that are children of the current object.
     /// </summary>
-    public virtual ICalendarObjectList<ICalendarObject> Children => _children;
+    public virtual ICalendarObjectList<ICalendarObject> Children
+        => LazyInitializer.EnsureInitialized(ref _children, CreateChildren)!;
+
+    private ICalendarObjectList<ICalendarObject> CreateChildren()
+    {
+        var children = new CalendarObjectList();
+        children.ItemAdded += Children_ItemAdded;
+        return children;
+    }
 
     /// <summary>
     /// Gets or sets the name of the iCalObject. For iCalendar components, this is the RFC 5545 name of the component.

@@ -67,11 +67,16 @@ public class Calendar : CalendarComponent, IGetOccurrencesTyped, IGetFreeBusy, I
     /// </code>
     /// </example>
     /// </summary>
-    public Calendar()
+    public Calendar() : this(setDefaults: true) { }
+
+    internal Calendar(bool setDefaults)
     {
         // Note: ProductId and Version Property values will be empty before _deserialization_
-        ProductId = LibraryMetadata.ProdId;
-        Version = LibraryMetadata.Version;
+        if (setDefaults)
+        {
+            ProductId = LibraryMetadata.ProdId;
+            Version = LibraryMetadata.Version;
+        }
 
         // Initialize the members to make the compiler happy.
         _mUniqueComponents = null!;

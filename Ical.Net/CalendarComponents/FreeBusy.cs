@@ -130,7 +130,9 @@ public class FreeBusy : UniqueComponent, IMergeable
         return fb;
     }
 
-    public FreeBusy()
+    public FreeBusy() : this(setDefaults: true) { }
+
+    internal FreeBusy(bool setDefaults) : base(setDefaults)
     {
         Name = Components.Freebusy;
     }

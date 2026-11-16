@@ -105,12 +105,12 @@ internal static class ConverterMap
         return new(StringComparer.OrdinalIgnoreCase)
         {
             { Components.Alarm, static () => new Alarm() },
-            { EventStatus.Name, static () => new CalendarEvent() },
-            { Components.Freebusy, static () => new FreeBusy() },
-            { JournalStatus.Name, static () => new Journal() },
+            { EventStatus.Name, static () => new CalendarEvent(setDefaults: false) },
+            { Components.Freebusy, static () => new FreeBusy(setDefaults: false) },
+            { JournalStatus.Name, static () => new Journal(setDefaults: false) },
             { Components.Timezone, static () => new VTimeZone() },
-            { TodoStatus.Name, static () => new Todo() },
-            { Components.Calendar, static () => new Calendar() },
+            { TodoStatus.Name, static () => new Todo(setDefaults: false) },
+            { Components.Calendar, static () => new Calendar(setDefaults: false) },
             { Components.Daylight, static () => new VTimeZoneInfo(Components.Daylight) },
             { Components.Standard, static () => new VTimeZoneInfo(Components.Standard) },
         };
